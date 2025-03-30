@@ -167,13 +167,16 @@ def handle_data(d, r, target_name):
             sys.stdout.write('{0}\n'.format(v))
 
 def perform_service(value):
-    layout = [[sg.Button("*M*ath Eval")], [sg.Button("*W*iki*P*edia Lookup")], [sg.Cancel()]]
-    window = sg.Window("PoSTServices", layout)
+    sg.set_options(element_padding=(0, 0))
+    layout = [[sg.Button("*M*ath Eval")], 
+              [sg.Button("*W*iki*P*edia Lookup")], 
+              [sg.Cancel()]]
+    window = sg.Window("PoSTServices", layout, location=pyautogui.position())
 
     serviceResult = None
     while True:
         event, values = window.read()
-        if event in (sg.WINDOW_CLOSED, "Exit"):
+        if event in (sg.WINDOW_CLOSED, "Cancel"):
             break
         if event == "*M*ath Eval":
             serviceResult = str(safe_compute(value))
