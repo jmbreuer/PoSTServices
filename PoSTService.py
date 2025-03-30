@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 
 import binascii
+import subprocess
 import sys
 import os
 
 from Xlib import X, display, Xutil, Xatom
 import pyautogui
+
+import PySimpleGUI as sg
 
 from math_eval import compute, safe_compute
 
@@ -130,6 +133,7 @@ def read_incremental(d, w, data_atom, target_name):
         # loop around
 
 
+
 def handle_data(d, r, target_name):
     log('got {0}:{1}, length {2}',
         d.get_atom_name(r.property_type),
@@ -145,10 +149,11 @@ def handle_data(d, r, target_name):
             value = binascii.hexlify(r.value).decode('ascii')
         sys.stdout.write(value)
         sys.stdout.write('\n')
-        serviceResult = str(safe_compute(value))
-        sys.stdout.write(serviceResult)
-        pyautogui.typewrite(serviceResult)
-        sys.stdout.write('\n')
+        serviceResult = perform_service(value)
+        if serviceResult is not None:
+            sys.stdout.write(serviceResult)
+            pyautogui.typewrite(serviceResult)
+            sys.stdout.write('\n')
         
     # 6*9 6*9 6*9 6*9 
 
@@ -161,7 +166,26 @@ def handle_data(d, r, target_name):
         for v in r.value:
             sys.stdout.write('{0}\n'.format(v))
 
+def perform_service(value):
+    layout = [[sg.Button("*M*ath Eval")], [sg.Button("*W*iki*P*edia Lookup")], [sg.Cancel()]]
+    window = sg.Window("PoSTServices", layout)
 
+    serviceResult = None
+    while True:
+        event, values = window.read()
+        if event in (sg.WINDOW_CLOSED, "Exit"):
+            break
+        if event == "*M*ath Eval":
+            serviceResult = str(safe_compute(value))
+            window.close()
+        if event == "*W*iki*P*edia Lookup":
+            url = 'https://en.wikipedia.org/w/index.php?search='+value
+            sys.stdout.write(url)
+            sys.stdout.write('\n')
+            subprocess.Popen(['xdg-open', url], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            window.close()
+    
+    return serviceResult
 
 if __name__ == '__main__':
     main()
