@@ -176,6 +176,7 @@ def handle_data(d, r, target_name):
             sys.stdout.write('{0}\n'.format(v))
 
 def perform_service(value):
+    sg.theme("DarkGray9")
     sg.set_options(element_padding=(0, 0))
     layout = [[sg.Button("Math Eval", expand_x=True)],
               [sg.Button("SciHub", expand_x=True)],
@@ -193,7 +194,7 @@ def perform_service(value):
         sys.stdout.write(' ')
         sys.stdout.write(str(values))
         sys.stdout.write('\n')
-        if event in (sg.WINDOW_CLOSED, "Cancel"):
+        if event in (sg.WINDOW_CLOSED, "Cancel") or event.startswith('Escape:'):
             break
         if event == "Math Eval" or event == 'm' or event.startswith('m:'):
             serviceResult = str(safe_compute(value))
