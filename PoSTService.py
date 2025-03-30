@@ -185,6 +185,7 @@ def perform_service(value):
     window = sg.Window("PoSTServices", layout, 
                        return_keyboard_events=True,
                        location=pyautogui.position(),
+                       no_titlebar=True,
                        auto_size_buttons=True)
 
     serviceResult = None
