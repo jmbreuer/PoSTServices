@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
 import binascii
+import os
+import psutil
 import subprocess
 import sys
-import os
 
 from Xlib import X, display, Xutil, Xatom
 import pyautogui
@@ -20,7 +21,12 @@ def error(msg, *args):
     sys.exit(1)
 
 def main():
-    
+    procs = [p for p in psutil.process_iter() if 'python' in p.name() and __file__ in p.cmdline()]
+    if len(procs) > 1:
+        for proc in procs:
+            if proc.pid != os.getpid():
+                os.kill(proc.pid, 15)
+
     '''
     if len(sys.argv) < 2 or len(sys.argv) > 3:
         sys.exit('usage: {0} SELECTION [TYPE]\n\n'
