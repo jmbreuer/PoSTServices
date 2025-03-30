@@ -5,6 +5,7 @@ import os
 import psutil
 import subprocess
 import sys
+import time
 
 from Xlib import X, display, Xutil, Xatom
 import pyautogui
@@ -158,6 +159,8 @@ def handle_data(d, r, target_name):
         serviceResult = perform_service(value)
         if serviceResult is not None:
             sys.stdout.write(serviceResult)
+            # properly wait for correct focus
+            time.sleep(.05)
             pyautogui.typewrite(serviceResult)
             sys.stdout.write('\n')
         
@@ -174,26 +177,45 @@ def handle_data(d, r, target_name):
 
 def perform_service(value):
     sg.set_options(element_padding=(0, 0))
-    layout = [[sg.Button("*M*ath Eval")], 
-              [sg.Button("*W*iki*P*edia Lookup")], 
-              [sg.Cancel()]]
-    window = sg.Window("PoSTServices", layout, location=pyautogui.position())
+    layout = [[sg.Button("Math Eval", expand_x=True)],
+              [sg.Button("SciHub", expand_x=True)],
+              [sg.Button("Wikipedia", expand_x=True)], 
+              [sg.Cancel(pad=(0,5))]]
+    window = sg.Window("PoSTServices", layout, 
+                       return_keyboard_events=True,
+                       location=pyautogui.position(),
+                       auto_size_buttons=True)
 
     serviceResult = None
     while True:
         event, values = window.read()
+        sys.stdout.write(event)
+        sys.stdout.write(' ')
+        sys.stdout.write(str(values))
+        sys.stdout.write('\n')
         if event in (sg.WINDOW_CLOSED, "Cancel"):
             break
-        if event == "*M*ath Eval":
+        if event == "Math Eval" or event == 'm' or event.startswith('m:'):
             serviceResult = str(safe_compute(value))
             window.close()
-        if event == "*W*iki*P*edia Lookup":
+            break
+        if event == "SciHub" or event == 'm' or event.startswith('s:'):
+            url = 'https://www.sci-hub.box/'+value
+            sys.stdout.write(url)
+            sys.stdout.write('\n')
+            # see https://github.com/keepassxreboot/keepassxc/issues/9468#issuecomment-1635533910 how to do this properly
+            subprocess.Popen(['librewolf', '--private-window', url], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            window.close()
+        if event == "Wikipedia Lookup" or event == 'w' or event.startswith('w:'):
             url = 'https://en.wikipedia.org/w/index.php?search='+value
             sys.stdout.write(url)
             sys.stdout.write('\n')
             subprocess.Popen(['xdg-open', url], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             window.close()
+            break
     
+    window.close()
+
     return serviceResult
 
 if __name__ == '__main__':
