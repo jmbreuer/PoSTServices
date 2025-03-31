@@ -24,6 +24,7 @@ def error(msg, *args):
     sys.exit(1)
 
 def main():
+    # kill other instance(s), last one wins
     procs = [p for p in psutil.process_iter() if 'python' in p.name() and __file__ in p.cmdline()]
     if len(procs) > 1:
         for proc in procs:
@@ -184,7 +185,7 @@ def perform_service(value):
               [sg.Button("SciHub", expand_x=True)],
               [sg.Button("wikiPedia", expand_x=True)], 
               [sg.Button("wikipedia Deutsch", expand_x=True)], 
-              [sg.Button("Wolfram Alpha", expand_x=True)],
+              [sg.Button("Wolfram Alpha", expand_x=True)] if os.environ['WOLFRAM_APPID'] else [],
               [sg.Cancel(pad=(0,5))]]
     window = sg.Window("PoSTServices", layout, 
                        return_keyboard_events=True,
@@ -236,8 +237,7 @@ def perform_service(value):
             serviceResult = response.text
             window.close()
             break
-            
-    
+                
     window.close()
 
     return serviceResult
