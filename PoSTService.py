@@ -3,9 +3,11 @@
 import binascii
 import os
 import psutil
+import requests
 import subprocess
 import sys
 import time
+import urllib.parse
 
 from Xlib import X, display, Xutil, Xatom
 import pyautogui
@@ -180,7 +182,9 @@ def perform_service(value):
     sg.set_options(element_padding=(0, 0))
     layout = [[sg.Button("Math Eval", expand_x=True)],
               [sg.Button("SciHub", expand_x=True)],
-              [sg.Button("Wikipedia", expand_x=True)], 
+              [sg.Button("wikiPedia", expand_x=True)], 
+              [sg.Button("wikipedia Deutsch", expand_x=True)], 
+              [sg.Button("Wolfram Alpha", expand_x=True)],
               [sg.Cancel(pad=(0,5))]]
     window = sg.Window("PoSTServices", layout, 
                        return_keyboard_events=True,
@@ -201,20 +205,38 @@ def perform_service(value):
             serviceResult = str(safe_compute(value))
             window.close()
             break
-        if event == "SciHub" or event == 'm' or event.startswith('s:'):
-            url = 'https://www.sci-hub.box/'+value
+        if event == "SciHub" or event == 's' or event.startswith('s:'):
+            url = 'https://www.sci-hub.box/'+urllib.parse.quote(value)
             sys.stdout.write(url)
             sys.stdout.write('\n')
             # see https://github.com/keepassxreboot/keepassxc/issues/9468#issuecomment-1635533910 how to do this properly
             subprocess.Popen(['librewolf', '--private-window', url], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             window.close()
-        if event == "Wikipedia Lookup" or event == 'w' or event.startswith('w:'):
-            url = 'https://en.wikipedia.org/w/index.php?search='+value
+        if event == "wikiPedia" or event == 'p' or event.startswith('p:'):
+            url = 'https://en.wikipedia.org/w/index.php?search='+urllib.parse.quote(value)
             sys.stdout.write(url)
             sys.stdout.write('\n')
             subprocess.Popen(['xdg-open', url], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             window.close()
             break
+        if event == "wikipedia Deutsch" or event == 'd' or event.startswith('d:'):
+            url = 'https://de.wikipedia.org/w/index.php?search='+urllib.parse.quote(value)
+            sys.stdout.write(url)
+            sys.stdout.write('\n')
+            subprocess.Popen(['xdg-open', url], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            window.close()
+            break
+        if event == "Wolfram Alpha" or event == 'w' or event.startswith('w:'):
+            url = 'http://api.wolframalpha.com/v1/result?appid='+os.environ['WOLFRAM_APPID']+'&i='+urllib.parse.quote_plus(value)
+            sys.stdout.write(url)
+            sys.stdout.write('\n')
+            response = requests.get(url)
+            sys.stdout.write(response.text)
+            sys.stdout.write('\n')
+            serviceResult = response.text
+            window.close()
+            break
+            
     
     window.close()
 
